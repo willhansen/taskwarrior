@@ -10,3 +10,4 @@ tutorials
 .prove
 /target/
 /.idea/
+cargo-registry/

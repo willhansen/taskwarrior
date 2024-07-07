@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-CODE_DIR="/root/code"
 
 function print_help() {
   echo "Usage: $(basename "$0") [-h|--help] [-t|--test [STRING]]"
@@ -91,8 +90,10 @@ if [[ $DO_END_IN_BASH == true ]]; then
 fi
 
 
+CODE_DIR="/root/code"
 
 mkdir -p build && \
+mkdir -p cargo-registry && \
 docker build \
 -t foo \
 --file ./docker/task.dockerfile . && \
@@ -101,5 +102,6 @@ docker build \
     -it \
     --workdir "${CODE_DIR}" \
     --mount type=bind,source=./build,destination="${CODE_DIR}"/build \
+    --mount type=bind,source=./cargo-registry,destination="${CODE_DIR}"/../.cargo/registry \
     foo \
     bash -c "$COMBINED_CMD"

@@ -25,5 +25,5 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh && \
     sh rustup.sh -y --profile minimal --default-toolchain stable --component rust-docs
 
 # Add source directory (build directory is excluded by .dockerignore file, to be mounted later for build caching)
-ADD . /root/code/
+COPY . /root/code/
 
