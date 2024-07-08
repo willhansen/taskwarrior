@@ -91,17 +91,19 @@ fi
 
 
 CODE_DIR="/root/code"
+DOCKERFILE="./local-docker/dockerfile"
+IMAGE_TAG="image-for-local-taskwarrior-dev"
 
 mkdir -p build && \
 mkdir -p cargo-registry && \
 docker build \
--t foo \
---file ./docker/task.dockerfile . && \
+-t "$IMAGE_TAG" \
+--file "$DOCKERFILE" . && \
   docker run \
     --rm \
     -it \
     --workdir "${CODE_DIR}" \
     --mount type=bind,source=./build,destination="${CODE_DIR}"/build \
     --mount type=bind,source=./cargo-registry,destination="${CODE_DIR}"/../.cargo/registry \
-    foo \
+    "$IMAGE_TAG" \
     bash -c "$COMBINED_CMD"
