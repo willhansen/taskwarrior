@@ -7,7 +7,9 @@ IMAGE_TAG="image-for-local-taskwarrior-dev"
 
 
 function print_help() {
-  echo "Usage: $(basename "$0") [-h|--help] [-t|--test [STRING]]"
+  echo "Usage:"
+  echo ""
+  echo "    ./local-docker/$(basename "$0") [-h|--help] [-t|--test [STRING]]"
   echo ""
   echo "Options:"
   echo "  -h, --help            Show this help text"
