@@ -1,5 +1,10 @@
 #! /usr/bin/env bash
 
+CODE_DIR="/root/code"
+SCRIPT_DIR="$CODE_DIR/local-docker"
+DOCKERFILE="./local-docker/dockerfile"
+IMAGE_TAG="image-for-local-taskwarrior-dev"
+
 
 function print_help() {
   echo "Usage: $(basename "$0") [-h|--help] [-t|--test [STRING]]"
@@ -53,46 +58,25 @@ function print_args() {
 # print_args; exit 0
 
 
-CMD_BUILD_TW="\
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release . && \
-  cmake --build build -j $(nproc) \
-  "
-CMD_BUILD_TESTS="\
-  cmake --build build -j $(nproc) --target build_tests \
-  "
-
-CMD_RUN_TESTS="\
-  ctest --test-dir build -j $(nproc) --output-on-failure \
-  "
-
-CMD_INIT_TW="\
-    ln -s /root/code/build/src/task /usr/local/bin/task && \
-    ( echo 'yes' | task ) || true \
-    "
-
-COMBINED_CMD="\
-    $CMD_BUILD_TW && \
-    $CMD_BUILD_TESTS && \
-    $CMD_INIT_TW \
-  "
+ENTRY_CMD="\
+  \"$SCRIPT_DIR/build.bash\" && \
+  \"$SCRIPT_DIR/build_tests.bash\" && \
+  \"$SCRIPT_DIR/init.bash\" && \
+  true"
 
 
 if [[ $DO_TESTS == true ]]; then
+  ENTRY_CMD+=" && \"$SCRIPT_DIR/run_tests.bash\""
   if [[ "$TEST_SUBSTRING" != "" ]]; then
     # Select test by substring
-    CMD_RUN_TESTS+=' -R .*'"$TEST_SUBSTRING"'.*'
+    ENTRY_CMD+=" \"$TEST_SUBSTRING\""
   fi
-  COMBINED_CMD+=" && $CMD_RUN_TESTS"
 fi
 
 if [[ $DO_END_IN_BASH == true ]]; then
-  COMBINED_CMD+=" && bash"
+  ENTRY_CMD+=" && bash"
 fi
 
-
-CODE_DIR="/root/code"
-DOCKERFILE="./local-docker/dockerfile"
-IMAGE_TAG="image-for-local-taskwarrior-dev"
 
 mkdir -p build && \
 mkdir -p cargo-registry && \
@@ -106,4 +90,4 @@ docker build \
     --mount type=bind,source=./build,destination="${CODE_DIR}"/build \
     --mount type=bind,source=./cargo-registry,destination="${CODE_DIR}"/../.cargo/registry \
     "$IMAGE_TAG" \
-    bash -c "$COMBINED_CMD"
+    bash -c "$ENTRY_CMD"
