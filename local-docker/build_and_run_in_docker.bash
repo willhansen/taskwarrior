@@ -64,6 +64,7 @@ ENTRY_CMD="\
   \"$SCRIPT_DIR/build.bash\" && \
   \"$SCRIPT_DIR/build_tests.bash\" && \
   \"$SCRIPT_DIR/init.bash\" && \
+  echo 'build phase complete' && \
   true"
 
 
