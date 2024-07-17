@@ -16,11 +16,13 @@ function print_help() {
   echo "  -t, --test [STRING]   Run tests after building"
   echo "                        If STRING is present, only run tests containing STRING in their name"
   echo "  -i, --interactive     Leave user in bash shell in container afterwards"
+  echo "  -k, --keepalive       Keep the container alive and headless" 
   echo ""
 }
 
 DO_TESTS=false
 DO_END_IN_BASH=false
+DO_KEEP_ALIVE=false
 TEST_SUBSTRING=""
 while test $# -gt 0; do
   case "$1" in
@@ -41,6 +43,10 @@ while test $# -gt 0; do
       DO_END_IN_BASH=true
       shift
       ;;
+    -k | --keepalive)
+      DO_KEEP_ALIVE=true
+      shift
+      ;;
     -*)
       echo "Unknown option: $1"
       exit 1
@@ -56,6 +62,7 @@ function print_args() {
   echo "DO_TESTS: $DO_TESTS"
   echo "TEST_SUBSTRING: $TEST_SUBSTRING"
   echo "DO_END_IN_BASH: $DO_END_IN_BASH"
+  echo "DO_KEEP_ALIVE: $DO_KEEP_ALIVE"
 }
 # print_args; exit 0
 
@@ -78,6 +85,8 @@ fi
 
 if [[ $DO_END_IN_BASH == true ]]; then
   ENTRY_CMD+=" && bash"
+elif [[ $DO_KEEP_ALIVE == true ]]; then
+  ENTRY_CMD+=" && sleep infinity"
 fi
 
 
