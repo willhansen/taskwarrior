@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+import subprocess
 
 EXIT_FAILURE = 1
 EXIT_SUCCESS = 0
@@ -20,13 +21,14 @@ def main() -> None:
         "-t",
         "--test",
         action="store_true",
-        help="Run tests after building\nIf STRING is present, only run tests containing STRING in their name",
+        help="Run tests after building. If STRING is present, only run tests containing STRING in their name",
     )
+    #TODO: mutually exclusive
     parser.add_argument(
         "-i",
         "--interactive",
         action="store_true",
-        help="Leave user in bash shell in container afterwards",
+        help="Leave user in interactive bash shell in container afterwards",
     )
     parser.add_argument(
         "-k",
@@ -53,11 +55,12 @@ def main() -> None:
     elif args.keepalive:
         entry_cmds.append("sleep infinity")
 
-    entry_cmd_final = sum([[x,"&&"] for x in entry_cmds])[:-1]
+    print(entry_cmds)
+    entry_cmd_final = sum([[x,"&&"] for x in entry_cmds], [])[:-1]
 
     os.chdir(f"{script_directory}/..")
-    os.mkdirs("build", exist_ok=True)
-    os.mkdirs("cargo-registry", exist_ok=True)
+    os.makedirs("build", exist_ok=True)
+    os.makedirs("cargo-registry", exist_ok=True)
 
     code_dir = "/root/code"
     dockerfile = "./local-docker/dockerfile"
@@ -73,5 +76,10 @@ def main() -> None:
         docker_args.append("-it")
 
 
-    cmd = ["docker", "run"] + docker_args + 
-    subprocess.run()
+    cmd = ["docker", "run"] + docker_args + entry_cmd_final
+    print(cmd)
+    subprocess.run(cmd )
+
+
+if __name__=="__main__":
+    main()
