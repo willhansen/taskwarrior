@@ -3,6 +3,7 @@
 import argparse
 import os
 import subprocess
+from pprint import pprint
 
 EXIT_FAILURE = 1
 EXIT_SUCCESS = 0
@@ -22,7 +23,7 @@ def main() -> None:
         action="store_true",
         help="Run tests after building. If STRING is present, only run tests containing STRING in their name",
     )
-    # TODO: mutually exclusive
+    # TODO: mutually exclusive with 'keepalive'
     parser.add_argument(
         "-i",
         "--interactive",
@@ -51,15 +52,17 @@ def main() -> None:
         entry_cmds.append(f"{container_script_dir}/run_tests.bash")
         # TODO: test substring
 
+    pprint(args.__dict__)
+    print()
     if args.interactive:
         entry_cmds.append("bash")
     elif args.keepalive:
         entry_cmds.append("sleep infinity")
 
-    print(entry_cmds)
+    pprint(entry_cmds)
     print()
     entry_cmds_final = sum([[x, "&&"] for x in entry_cmds], [])[:-1]
-    print(entry_cmds_final)
+    pprint(entry_cmds_final)
     print()
     entry_cmd_final = " ".join(entry_cmds_final)
 
@@ -94,7 +97,7 @@ def main() -> None:
 
     cmd = ["docker", "run"] + docker_run_args
     print("=== Run Cmd ===")
-    print(cmd)
+    pprint(cmd)
     print()
     subprocess.run(cmd, check=True)
 
