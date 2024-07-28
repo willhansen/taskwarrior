@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import sys
 import subprocess
 
 EXIT_FAILURE = 1
@@ -23,7 +22,7 @@ def main() -> None:
         action="store_true",
         help="Run tests after building. If STRING is present, only run tests containing STRING in their name",
     )
-    #TODO: mutually exclusive
+    # TODO: mutually exclusive
     parser.add_argument(
         "-i",
         "--interactive",
@@ -56,7 +55,11 @@ def main() -> None:
         entry_cmds.append("sleep infinity")
 
     print(entry_cmds)
-    entry_cmd_final = sum([[x,"&&"] for x in entry_cmds], [])[:-1]
+    print()
+    entry_cmds_final = sum([[x, "&&"] for x in entry_cmds], [])[:-1]
+    print(entry_cmds_final)
+    print()
+    entry_cmd_final = " ".join(entry_cmds_final)
 
     os.chdir(f"{script_directory}/..")
     os.makedirs("build", exist_ok=True)
@@ -66,20 +69,33 @@ def main() -> None:
     dockerfile = "./local-docker/dockerfile"
     image_tag = "image-for-local-taskwarrior-dev"
 
-    docker_args = [
+    subprocess.run(
+        ["docker", "build", "-t", image_tag, "--file", dockerfile, "."], check=True
+    )
+
+    docker_run_args = [
         "--rm",
-        f"--workdir {code_dir}",
-        f"--mount type=bind,source=./build,destination={code_dir}/build",
-        f"--mount type=bind,source=./cargo-registry,destination={code_dir}/../.cargo/registry",
+        f"--workdir={code_dir}",
+        "--mount",
+        f"type=bind,source=./build,destination={code_dir}/build",
+        "--mount",
+        f"type=bind,source=./cargo-registry,destination={code_dir}/../.cargo/registry",
     ]
     if args.interactive:
-        docker_args.append("-it")
+        docker_run_args.append("-it")
+    docker_run_args += [
+        image_tag,
+        "bash",
+        "-c",
+        entry_cmd_final,
+    ]
 
-
-    cmd = ["docker", "run"] + docker_args + entry_cmd_final
+    cmd = ["docker", "run"] + docker_run_args
+    print("=== Run Cmd ===")
     print(cmd)
-    subprocess.run(cmd )
+    print()
+    subprocess.run(cmd, check=True)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

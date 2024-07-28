@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+set -o errexit -o pipefail -o nounset -o xtrace
+
 CODE_DIR="/root/code"
 SCRIPT_DIR="$CODE_DIR/local-docker"
 DOCKERFILE="./local-docker/dockerfile"
@@ -64,7 +66,7 @@ function print_args() {
   echo "DO_END_IN_BASH: $DO_END_IN_BASH"
   echo "DO_KEEP_ALIVE: $DO_KEEP_ALIVE"
 }
-# print_args; exit 0
+print_args
 
 
 ENTRY_CMD="\
@@ -90,16 +92,17 @@ elif [[ $DO_KEEP_ALIVE == true ]]; then
 fi
 
 
-mkdir -p build && \
-mkdir -p cargo-registry && \
+mkdir -p build
+mkdir -p cargo-registry
+
 docker build \
 -t "$IMAGE_TAG" \
---file "$DOCKERFILE" . && \
-  docker run \
-    --rm \
-    -it \
-    --workdir "${CODE_DIR}" \
-    --mount type=bind,source=./build,destination="${CODE_DIR}"/build \
-    --mount type=bind,source=./cargo-registry,destination="${CODE_DIR}"/../.cargo/registry \
-    "$IMAGE_TAG" \
-    bash -c "$ENTRY_CMD"
+--file "$DOCKERFILE" .
+docker run \
+  --rm \
+  -it \
+  --workdir "${CODE_DIR}" \
+  --mount type=bind,source=./build,destination="${CODE_DIR}"/build \
+  --mount type=bind,source=./cargo-registry,destination="${CODE_DIR}"/../.cargo/registry \
+  "$IMAGE_TAG" \
+  bash -c "$ENTRY_CMD"
