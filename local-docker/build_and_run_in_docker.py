@@ -74,6 +74,8 @@ def main() -> None:
     pprint(entry_cmds_final)
     print()
     entry_cmd_final = " ".join(entry_cmds_final)
+    pprint(entry_cmd_final)
+    print()
 
     os.chdir(f"{host_script_dir}/..")
     os.makedirs("build", exist_ok=True)
@@ -94,8 +96,8 @@ def main() -> None:
         f"type=bind,source=./build,destination={code_dir}/build",
         "--mount",
         f"type=bind,source=./cargo-registry,destination={code_dir}/../.cargo/registry",
+        "-it",
     ]
-    docker_run_args.append("-it")
     docker_run_args += [
         image_tag,
         "bash",
