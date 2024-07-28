@@ -23,6 +23,13 @@ def main() -> None:
         action="store_true",
         help="Run tests after building. If STRING is present, only run tests containing STRING in their name",
     )
+    # TODO: only valid when args.test is True
+    parser.add_argument(
+        "-w",
+        "--wait",
+        action="store_true",
+        help="Wait for user input before running tests",
+    )
     # TODO: mutually exclusive with 'keepalive'
     parser.add_argument(
         "-i",
@@ -49,6 +56,8 @@ def main() -> None:
     ] + ["echo 'build phase complete'"]
 
     if args.test:
+        if args.wait:
+            entry_cmds.append(f"{container_script_dir}/wait_for_key.bash")
         entry_cmds.append(f"{container_script_dir}/run_tests.bash")
         # TODO: test substring
 
@@ -86,8 +95,7 @@ def main() -> None:
         "--mount",
         f"type=bind,source=./cargo-registry,destination={code_dir}/../.cargo/registry",
     ]
-    if args.interactive:
-        docker_run_args.append("-it")
+    docker_run_args.append("-it")
     docker_run_args += [
         image_tag,
         "bash",
