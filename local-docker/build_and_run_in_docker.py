@@ -38,15 +38,17 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    script_directory = os.path.dirname(os.path.abspath(__file__))
+    host_script_dir = os.path.dirname(os.path.abspath(__file__))
+    container_code_dir="/root/code"
+    container_script_dir=f"{container_code_dir}/local-docker"
 
     entry_cmds = [
-        f"{script_directory}/{file}"
+        f"{container_script_dir}/{file}"
         for file in ["build.bash", "build_tests.bash", "init.bash"]
     ] + ["echo 'build phase complete'"]
 
     if args.test:
-        entry_cmds.append(f"{script_directory}/run_tests.bash")
+        entry_cmds.append(f"{container_script_dir}/run_tests.bash")
         # TODO: test substring
 
     if args.interactive:
@@ -61,7 +63,7 @@ def main() -> None:
     print()
     entry_cmd_final = " ".join(entry_cmds_final)
 
-    os.chdir(f"{script_directory}/..")
+    os.chdir(f"{host_script_dir}/..")
     os.makedirs("build", exist_ok=True)
     os.makedirs("cargo-registry", exist_ok=True)
 
