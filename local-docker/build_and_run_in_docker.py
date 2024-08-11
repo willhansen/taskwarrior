@@ -8,6 +8,8 @@ from pprint import pprint
 EXIT_FAILURE = 1
 EXIT_SUCCESS = 0
 
+code_dir = "/tmp/code"
+
 
 def main() -> None:
 
@@ -30,6 +32,12 @@ def main() -> None:
         action="store_true",
         help="Wait for user input before running tests",
     )
+    parser.add_argument(
+        "-l",
+        "--loop-tests",
+        action="store_true",
+        help="continually re-run the tests",
+    )
     # TODO: mutually exclusive with 'keepalive'
     parser.add_argument(
         "-i",
@@ -47,18 +55,21 @@ def main() -> None:
     args = parser.parse_args()
 
     host_script_dir = os.path.dirname(os.path.abspath(__file__))
-    container_code_dir="/root/code"
-    container_script_dir=f"{container_code_dir}/local-docker"
+    container_code_dir = "/tmp/code"
+    container_script_dir = f"{container_code_dir}/local-docker"
 
     entry_cmds = [
         f"{container_script_dir}/{file}"
         for file in ["build.bash", "build_tests.bash", "init.bash"]
-    ] + ["echo 'build phase complete'"]
+    ]
 
     if args.test:
         if args.wait:
             entry_cmds.append(f"{container_script_dir}/wait_for_key.bash")
-        entry_cmds.append(f"{container_script_dir}/run_tests.bash")
+        entry_cmds.append(
+            f"{container_script_dir}/run_tests.py"
+            + (" --loop" if args.loop_tests else "")
+        )
         # TODO: test substring
 
     pprint(args.__dict__)
@@ -81,12 +92,14 @@ def main() -> None:
     os.makedirs("build", exist_ok=True)
     os.makedirs("cargo-registry", exist_ok=True)
 
-    code_dir = "/root/code"
+    code_dir = "/tmp/code"
     dockerfile = "./local-docker/dockerfile"
     image_tag = "image-for-local-taskwarrior-dev"
 
+    docker_cmd = "podman"
+
     subprocess.run(
-        ["docker", "build", "-t", image_tag, "--file", dockerfile, "."], check=True
+        [docker_cmd, "build", "-t", image_tag, "--file", dockerfile, "."], check=True
     )
 
     docker_run_args = [
@@ -102,10 +115,11 @@ def main() -> None:
         image_tag,
         "bash",
         "-c",
+        # "pwd && ls && ls /tmp && ls /tmp/code && ls /tmp/code/local-docker"
         entry_cmd_final,
     ]
 
-    cmd = ["docker", "run"] + docker_run_args
+    cmd = [docker_cmd, "run"] + docker_run_args
     print("=== Run Cmd ===")
     pprint(cmd)
     print()
