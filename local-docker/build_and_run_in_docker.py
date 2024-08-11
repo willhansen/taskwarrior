@@ -51,6 +51,11 @@ def main() -> None:
         action="store_true",
         help="Keep the container alive and headless",
     )
+    parser.add_argument(
+        "-E",
+        "--exclude",
+        action="store",
+    )
 
     args = parser.parse_args()
 
@@ -69,6 +74,7 @@ def main() -> None:
         entry_cmds.append(
             f"{container_script_dir}/run_tests.py"
             + (" --loop" if args.loop_tests else "")
+            + (f" -E {args.exclude}" if args.exclude else "")
         )
         # TODO: test substring
 
