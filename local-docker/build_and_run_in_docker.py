@@ -25,6 +25,11 @@ def main() -> None:
         action="store_true",
         help="Run tests after building. If STRING is present, only run tests containing STRING in their name",
     )
+    parser.add_argument(
+        "-s",
+        "--skip-build",
+        action="store_true",
+    )
     # TODO: only valid when args.test is True
     parser.add_argument(
         "-w",
@@ -63,10 +68,12 @@ def main() -> None:
     container_code_dir = "/tmp/code"
     container_script_dir = f"{container_code_dir}/local-docker"
 
-    entry_cmds = [
-        f"{container_script_dir}/{file}"
-        for file in ["build.bash", "build_tests.bash", "init.bash"]
-    ]
+    entry_cmds = []
+    if not args.skip_build:
+        entry_cmds += [
+            f"{container_script_dir}/{file}"
+            for file in ["build.bash", "build_tests.bash", "init.bash"]
+        ]
 
     if args.test:
         if args.wait:
@@ -104,9 +111,10 @@ def main() -> None:
 
     docker_cmd = "podman"
 
-    subprocess.run(
-        [docker_cmd, "build", "-t", image_tag, "--file", dockerfile, "."], check=True
-    )
+    if not args.skip_build:
+        subprocess.run(
+            [docker_cmd, "build", "-t", image_tag, "--file", dockerfile, "."], check=True
+        )
 
     docker_run_args = [
         "--rm",
