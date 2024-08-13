@@ -64,6 +64,15 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    print(args)
+
+    if args.loop_tests and not args.test:
+        args.test = True
+    if args.exclude is not None and not args.test:
+        raise argparse.ArgumentError("-E requires tests to be enabled")
+
+    print(args)
+
     host_script_dir = os.path.dirname(os.path.abspath(__file__))
     container_code_dir = "/tmp/code"
     container_script_dir = f"{container_code_dir}/local-docker"
@@ -85,8 +94,6 @@ def main() -> None:
         )
         # TODO: test substring
 
-    pprint(args.__dict__)
-    print()
     if args.interactive:
         entry_cmds.append("bash")
     elif args.keepalive:
